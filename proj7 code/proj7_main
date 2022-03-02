@@ -1,0 +1,129 @@
+# -*- coding: utf-8 -*-
+################################################################
+# #
+# Seth Cram #
+# ECE351-53 #
+# Project 7 #
+# Due: 3/08/2022 #
+# Any other necessary information needed to navigate the file #
+#  
+#
+################################################################
+
+import numpy
+import matplotlib.pyplot as plt
+import scipy.signal as sig #cant just import scipy
+
+
+#G(s):
+numG = [1, 9] 
+denomG = [ 1, -2, -40, -64 ]    
+z, p, k = sig.tf2zpk(numG, denomG) #rets zeros, poles, and gain
+
+print("\nG(s)")
+print("zeroes: ", z)
+print("poles: ", p)
+print("Gain: ", k)
+
+#A(s):
+numA = [1, 4] 
+denomA = [ 1, 4, 3 ]    
+z, p, k = sig.tf2zpk(numA, denomA) #rets zeros, poles, and gain
+
+print("\nA(s)")
+print("zeroes: ", z)
+print("poles: ", p)
+print("Gain: ", k)
+
+#B(s):
+expresh = [1, 26, 168]    
+z = numpy.roots( expresh ) #rets zeros, poles, and gain
+
+print("\nB(s)")
+print("zeroes: ", z)
+
+"""
+#open loop system:
+num = [1, 9]
+denom1 = [1, 1]
+denom2 = [1, 3]
+denomMid1 = sig.convolve(denom1, denom2)
+denom3 = [1, -8]
+denom4 = [1, 2]
+denomMid2 = sig.convolve(denom3, denom4)
+denom = sig.convolve(denomMid1, denomMid2 )
+print("\ndenom: ", denom)
+"""
+
+num = sig.convolve(numG, numA)
+denom = sig.convolve(denomG, denomA)
+
+H = (num, denom)
+
+#step response of H(s):
+(tout, yout) = sig.step(H)
+
+
+#PLOTS 
+
+#plot:
+#plt.subplot(2, 1, 2)
+plt.plot(tout, yout)
+plt.grid() #add a grid to graph
+plt.title('Open System Step Response of H(s)')
+plt.ylabel('h(t)')
+plt.xlabel('t')
+
+plt.show() #display figure
+
+
+#closed loop system:
+#convolve to expand num and denom of H(s):
+num1 = [1, 9]
+num2 = [1, 4]
+num = sig.convolve(num1, num2)
+print("\nNumerator: ", num);
+
+
+denom1 = [1, 1]
+denom2 = [1, 3]
+denom1 = sig.convolve(denom1, denom2)
+
+denom3 = [1, -8]
+denom4 = [1, 2]
+denom2 = sig.convolve(denom3, denom4)
+
+denom5 = [1, 4]
+denom3 = sig.convolve(denom5, denom2)
+lhsDenom = sig.convolve(denom1, denom3)
+
+secDenom3 = [1, 9]
+secDenom4 = [1, 12]
+secDenom3 = sig.convolve(secDenom3, secDenom4)
+
+secDenom5 = [1, 14]
+secDenom = sig.convolve(secDenom3, secDenom5)
+rhsDenom = sig.convolve(denom1, secDenom)
+
+print("Denom: ", lhsDenom + rhsDenom);
+
+#plugged H(s) denom into calc:
+#denom = [2, 41, 500, 2995, 6878, 4344]
+
+H = (num, lhsDenom + rhsDenom) #H = (num, denom)
+
+#step response of H(s):
+(tout, yout) = sig.step(H)
+
+
+#PLOTS 
+
+#plot:
+#plt.subplot(2, 1, 2)
+plt.plot(tout, yout)
+plt.grid() #add a grid to graph
+plt.title('Closed System Step Response of H(s)')
+plt.ylabel('h(t)')
+plt.xlabel('t')
+
+plt.show() #display figure
